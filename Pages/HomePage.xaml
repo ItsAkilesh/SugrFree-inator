@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="SugrFree.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SugrFree.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    >
+
+    <Grid>
+        <ScrollView HorizontalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Image VerticalAlignment="Top">
+                    <Image.Source>
+                        <BitmapImage UriSource="/Assets/Frame-3.png"
+/>
+                    </Image.Source>
+                </Image>
+                <TextBlock Text="SugrFree AI⚡" FontSize="40px" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30" />
+                <TextBlock  Margin="10" TextAlignment="Center" FontSize="14px" TextWrapping="WrapWholeWords" Text="SugrFree is an AI food recommendation expert assistant tool for diabetic patients powered by OpenAI models and Neo4j GraphDB for GraphRAG. Built in C# with WinUI3 .NET Framework for Native Windows Desktop app environment."/>
+                <InfoBar
+                IsOpen="True"
+                Severity="Informational"
+                Title=""
+                Margin="30"
+                IsClosable="False"
+                Message="Compatible only with Windows 11" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20">
+                    <Button x:Name="myButton" Style="{StaticResource AccentButtonStyle}">Get Started</Button>
+                </StackPanel>
+            </StackPanel>
+        </ScrollView>
+    </Grid>
+</Page>

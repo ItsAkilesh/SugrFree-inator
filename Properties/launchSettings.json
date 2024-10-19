@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SugrFree (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "SugrFree (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
