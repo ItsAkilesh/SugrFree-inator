@@ -24,6 +24,7 @@ using OpenAI.Managers;
 using OpenAI.ObjectModels.RequestModels;
 using OpenAI.ObjectModels;
 using ChatMessage = OpenAI.ObjectModels.RequestModels.ChatMessage;
+using static OpenAI.ObjectModels.StaticValues;
 
 
 
@@ -36,7 +37,7 @@ namespace SugrFree.Pages
     public sealed partial class SugrFreePage : Page
     {
         private OpenAIService openAiService;
-        private StorageFile file;
+        private StorageFile file = null;
         public string urlForAlbumArtGen;
         private List<ChatMessage> conversationContext = new List<ChatMessage>();
         public SugrFreePage()
@@ -50,7 +51,10 @@ namespace SugrFree.Pages
                 ApiKey = openAiKey
             });
             conversationContext.Add(ChatMessage.FromUser("You are SugrFree AI: A Generative AI who is an expert nutritionist. Always ask patients' dietary preferences (veg/non-veg/vegan, etc.) before answering. You will confidently answer questions about nutritional information and if it's recommended for diabetic people to eat it. Keep your responses short. Do no hallucinate information that was not provided to you although attempt answering questions only if you confidently know the context. Limit your meal plans to the Indian cuisine preferably South Indian cuisine."));
-        
+            GeneratingProgressBar.Visibility = Visibility.Collapsed;
+            UploadedBorder.Visibility = Visibility.Collapsed;
+            UploadedImage.Visibility = Visibility.Collapsed;
+            UploadedTextBlock.Visibility = Visibility.Collapsed;    
         }
 
         private async void PickAFileButton_Click(object sender, RoutedEventArgs e)
@@ -86,31 +90,91 @@ namespace SugrFree.Pages
             }
         }
 
+        // ...
+
         private async void SendButton_Click(object sender, RoutedEventArgs e)
         {
             string userInput = InputTextBox.Text;
             if (!string.IsNullOrEmpty(userInput))
             {
-                AddMessageToConversation($"You: {userInput}");
-                InputTextBox.Text = string.Empty;
-
-                conversationContext.Add(ChatMessage.FromUser(userInput)); // Add user input to conversation context
-
-                var completionResult = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
+                GeneratingProgressBar.Visibility = Visibility.Visible;
+                if (file != null) // Image file case
                 {
-                    Messages = conversationContext, // Use conversation context
-                    Model = Models.Gpt_4o,
-                    MaxTokens = 800
-                });
+                    AddMessageToConversation($"You: {userInput}");
+                    InputTextBox.Text = string.Empty;
 
-                if (completionResult != null && completionResult.Successful)
-                {
-                    AddMessageToConversation("SugrFree AI: " + completionResult.Choices.First().Message.Content);
-                    conversationContext.Add(completionResult.Choices.First().Message); // Add AI response to conversation context
+                    // Convert StorageFile to BitmapImage
+                    var bitmapImage = new BitmapImage();
+                    using (var stream = await file.OpenAsync(FileAccessMode.Read))
+                    {
+                        await bitmapImage.SetSourceAsync(stream);
+                    }
+                    UploadedBorder.Visibility = Visibility.Visible;
+                    UploadedImage.Visibility = Visibility.Visible;
+                    UploadedTextBlock.Visibility = Visibility.Visible;
+                    UploadedImage.Source = bitmapImage;
+
+                    var binaryImage = File.ReadAllBytesAsync(file.Path);
+                    // Add the file as an image Path to the conversation context and analyze it using GPT-4o vision model
+                    var completionResult = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
+                    {
+                        Messages = new List<ChatMessage>
+                        {
+                            ChatMessage.FromSystem("You are an expert Nutritionist. Look at the image and identify the dish. Always search the internet and provide nutrition values (as numbers) for a standard serving in grams or ml. Strictly Do not use Markdown format, use plaintext. Keep responses short."),
+                            ChatMessage.FromUser(
+                                new List<MessageContent>
+                                {
+                                    MessageContent.TextContent(userInput), // User's text input
+                                    MessageContent.ImageBinaryContent(await binaryImage, ImageStatics.ImageFileTypes.Png, ImageStatics.ImageDetailTypes.High) // Analyze the image from file URL
+                                }
+                            )
+                        },
+                        MaxTokens = 300, // Limit tokens for image description
+                        Model = Models.Gpt_4o,
+                        N = 1
+                    });
+
+                    if (completionResult != null && completionResult.Successful)
+                    {
+                        GeneratingProgressBar.Visibility = Visibility.Collapsed;
+                        AddMessageToConversation("SugrFree AI: " + completionResult.Choices.First().Message.Content);
+                        conversationContext.Add(completionResult.Choices.First().Message); // Add AI response to conversation context
+                    }
+                    else
+                    {
+                        GeneratingProgressBar.Visibility = Visibility.Collapsed;
+                        AddMessageToConversation("SugrFree AI: Sorry, something went wrong. " + completionResult.Error?.Message);
+                    }
                 }
-                else
+                else // Text-only case
                 {
-                    AddMessageToConversation("SugrFree AI: Sorry, something went wrong. " + completionResult.Error?.Message);
+                    AddMessageToConversation($"You: {userInput}");
+                    InputTextBox.Text = string.Empty;
+                    UploadedBorder.Visibility = Visibility.Collapsed;
+                    UploadedImage.Visibility = Visibility.Collapsed;
+                    UploadedTextBlock.Visibility = Visibility.Collapsed;
+
+                    conversationContext.Add(ChatMessage.FromUser(userInput)); // Add user input to conversation context
+                    GeneratingProgressBar.Visibility = Visibility.Visible;
+
+                    var completionResult = await openAiService.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest()
+                    {
+                        Messages = conversationContext, // Use conversation context
+                        Model = Models.Gpt_4o,
+                        MaxTokens = 800
+                    });
+
+                    if (completionResult != null && completionResult.Successful)
+                    {
+                        GeneratingProgressBar.Visibility = Visibility.Collapsed;
+                        AddMessageToConversation("SugrFree AI: " + completionResult.Choices.First().Message.Content);
+                        conversationContext.Add(completionResult.Choices.First().Message); // Add AI response to conversation context
+                    }
+                    else
+                    {
+                        GeneratingProgressBar.Visibility = Visibility.Collapsed;
+                        AddMessageToConversation("SugrFree AI: Sorry, something went wrong. " + completionResult.Error?.Message);
+                    }
                 }
             }
         }
@@ -165,7 +229,10 @@ namespace SugrFree.Pages
             // Clear conversation window
             ConversationList.Items.Clear();
             PickAFileOutputTextBlock.Text = "";
-
+            UploadedBorder.Visibility = Visibility.Collapsed;
+            UploadedImage.Visibility = Visibility.Collapsed;
+            UploadedTextBlock.Visibility = Visibility.Collapsed;
+            UploadedImage.Source = null;
             conversationContext.Clear();
             conversationContext.Add(ChatMessage.FromUser("You are SugrFree AI: A Generative AI who is an expert nutritionist. Always ask patients' dietary preferences (veg/non-veg/vegan, etc.) before answering. You will confidently answer questions about nutritional information and if it's recommended for diabetic people to eat it. Keep your responses short. Do no hallucinate information that was not provided to you although attempt answering questions only if you confidently know the context. Limit your meal plans to the Indian cuisine preferably South Indian cuisine."));
 

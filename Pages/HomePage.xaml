@@ -28,7 +28,7 @@
                 IsClosable="False"
                 Message="Compatible only with Windows 11" />
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="20">
-                    <Button x:Name="myButton" Style="{StaticResource AccentButtonStyle}">Get Started</Button>
+                    <Button x:Name="GetStartedButton" Style="{StaticResource AccentButtonStyle}">Get Started</Button>
                 </StackPanel>
             </StackPanel>
         </ScrollView>

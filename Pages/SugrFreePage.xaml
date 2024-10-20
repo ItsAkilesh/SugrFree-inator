@@ -10,9 +10,7 @@
     >
 
     <Grid>
-        <ScrollView VerticalScrollBarVisibility="Auto">
-
-
+        
             <StackPanel>
                 <TextBlock
         x:Name="PageHeader"
@@ -23,11 +21,12 @@
                     <Button x:Name="ClearButton" HorizontalAlignment="Right" Click="ClearButton_Click" Content="Clear ❌" Margin="20,20,0,0" Style="{ThemeResource DefaultButtonStyle}"/>
                 </StackPanel>
                 <Grid VerticalAlignment="Bottom" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal">
                     <Border Margin="20,20,0,0" CornerRadius="9.5" MinWidth="820" Background="{ThemeResource LayerOnMicaBaseAltFillColorSecondary}">
                         <StackPanel Margin="20,20,0,20"  Orientation="Vertical" HorizontalAlignment="Stretch">
                             <TextBlock Margin="0,0,0,5" FontWeight="Bold" Text="Talk with SugrFree AI"/>
-                            
-                            <ScrollViewer x:Name="ConversationScrollViewer" VerticalScrollBarVisibility="Auto" MaxHeight="500">
+                            <ProgressBar x:Name="GeneratingProgressBar" Padding="0,0,20,0" IsIndeterminate="True" ShowPaused="False" ShowError="False" />
+                            <ScrollViewer x:Name="ConversationScrollViewer" VerticalScrollBarVisibility="Auto" MaxHeight="500" Height="300">
                                 <ItemsControl x:Name="ConversationList" HorizontalAlignment="Left" Width="750" Margin="0,0,0,20">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
@@ -36,7 +35,7 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </ScrollViewer>
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
                                 <Button Margin="0,0,8,0" x:Name="AttachButton" HorizontalAlignment="Left" Click="PickAFileButton_Click">
                                     <Button.Content>
                                         <FontIcon Glyph="&#xE723;" />
@@ -44,18 +43,24 @@
                                 </Button>
                                 <TextBox x:Name="InputTextBox" HorizontalAlignment="Stretch" KeyDown="InputTextBox_KeyDown" TextWrapping="Wrap" Width="700" MaxWidth="700"/>
                                 <Button Margin="10,0,20,0" x:Name="SendButton" Content="Send" Click="SendButton_Click" HorizontalAlignment="Right"/>
-                                
+
                             </StackPanel>
                             <TextBlock x:Name="PickAFileOutputTextBlock" TextWrapping="Wrap" FontSize="9" Padding="0,10,0,0"/>
                             <TextBlock Text="GPT-4o can make mistakes. Always verify important information independently to ensure accuracy." Padding="0,10,0,0" FontSize="10" HorizontalAlignment="Center"/>
                         </StackPanel>
                     </Border>
-
-                </Grid>
+                    <Border x:Name="UploadedBorder" Margin="20,20,0,0" Background="{ThemeResource LayerOnMicaBaseAltFillColorSecondary}" CornerRadius="9.5" Width="400" MaxWidth="600" Height="450" MaxHeight="600" >
+                        <StackPanel>
+                            <TextBlock x:Name="UploadedTextBlock" Text="Uploaded Image" FontWeight="Bold" Margin="20,20,0,10" TextWrapping="WrapWholeWords"/>
+                            <Image x:Name="UploadedImage" HorizontalAlignment="Center" VerticalAlignment="Center" MaxHeight="375" MaxWidth="375" Margin="20,0,20,20"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
 
 
 
             </StackPanel>
-        </ScrollView>
+
     </Grid>
 </Page>
